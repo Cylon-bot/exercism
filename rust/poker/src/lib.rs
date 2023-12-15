@@ -22,16 +22,42 @@ enum CardType {
     Heart,
     Club,
 }
+
 pub fn evaluate_poker_hand(cards: &[Card]) -> PokerHands {
+    let mut value_counts = std::collections::HashMap::new();
+    for card in cards {
+        let count = value_counts.entry(&card.value).or_insert(0);
+        *count += 1;
+    }
+    let mut values: Vec<u8> = value_counts.keys().cloned().collect();
+    let is_straight = (0..values.len() - 1).all(|i| values[i] + 1 == values[i + 1]);
+
+    let pair_count = value_counts.values().filter(|&&count| count == 2).count();
+    if value_counts.values().any(|&count| count == 2) {
+        return PokerHands::OnePair;
+    }
+    if pair_count == 2 {
+        return PokerHands::TwoPair;
+    }
+    if value_counts.values().any(|&count| count == 3) {
+        return PokerHands::ThreeOfAKind;
+    }
+    if value_counts.values().any(|&count| count == 4) {
+        return PokerHands::FourOfAKInd;
+    }
+    if value_counts.values().any(|&count| count == 5) {
+        return PokerHands::FiveOfAKind;
+    }
     PokerHands::HighCard
 }
-
+#[derive(PartialEq, Eq, Hash)]
+#[repr(u8)]
 enum Value {
     Numeric(u8),
-    Jack,
-    Queen,
-    King,
-    Ace,
+    Jack = 10,
+    Queen = 12,
+    King = 13,
+    Ace = 14,
 }
 
 struct Card {
